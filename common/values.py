@@ -2,7 +2,7 @@
 LOCAL_HOST = '127.0.0.1'
 PORT = 1500
 
-DATAGRAM_SIZE = 248
+MAX_DATAGRAM_SIZE = 1024
 
 
 class Status:
@@ -48,11 +48,11 @@ class Operation:
     MOD = 'A'
     MOD_CMD = 'mod'
 
-    OP_3 = "b"
-    OP_3_CMD = 'op3'
+    PYTH = "b"
+    PYTH_CMD = 'pyth'
 
-    OP_4 = "B"
-    OP_4_CMD = 'op4'
+    MEAN = "B"
+    MEAN_CMD = 'mean'
 
     @staticmethod
     def name_from_code(code: str) -> str:
@@ -60,10 +60,10 @@ class Operation:
             return Operation.RAND_CMD
         elif code == Operation.MOD:
             return Operation.MOD_CMD
-        elif code == Operation.OP_3:
-            return Operation.OP_3_CMD
-        elif code == Operation.OP_4:
-            return Operation.OP_4_CMD
+        elif code == Operation.PYTH:
+            return Operation.PYTH_CMD
+        elif code == Operation.MEAN:
+            return Operation.MEAN_CMD
 
 
 class Error:
@@ -74,6 +74,7 @@ class Error:
     NOT_EXISTING_DATA = "4"
     INVALID_ARGUMENT = "5"
     MAX_VALUE_EXCEEDED = "6"
+    OPERATION_NOT_RECOGNIZED = "6"
 
     @staticmethod
     def name_from_code(code: str) -> str:

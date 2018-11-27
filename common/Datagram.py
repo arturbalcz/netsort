@@ -1,53 +1,73 @@
 class Datagram:
-    status_key: str = 's',
-    mode_key: str = 'm',
-    operation_key: str = 'o',
-    id_key: str = 'i',
-    session_key: str = 'e',
-    a_key: str = 'a',
-    b_key: str = 'b',
-    result_key: str = 'r',
+
+    operation_key: str = 'o'
+    status_key: str = 's'
+    id_key: str = 'i'
+    mode_key: str = 'm'
+    a_key: str = 'Na'
+    b_key: str = 'Nb'
+    result_key: str = 'r'
     last_key: str = 'l'
+
+    STOP = '#'
+    ARROW = '->'
 
     def __init__(
             self,
-            status: str, mode: str, session_id: int=0,
-            operation: str='o', a: int=0, b: int=0,
-            result: int=0, result_id: int=0, last: bool=1
-
+            status: str, session_id: int, mode: str, operation: str = "0",
+            a: int=0, b: int=0, result: int=0, last: bool=1
     ) -> None:
         super().__init__()
-        self.status = status
-        self.mode = mode
-        self.session_id = session_id
         self.operation = operation
+        self.status = status
+        self.session_id = session_id
+        self.mode = mode
         self.a = a
         self.b = b
         self.result = result
-        self.result_id = result_id
         self.last = last
 
     @classmethod
-    def from_str(cls):
+    def __get_param(cls, msg: str, key) -> str:
+        begin = msg.find(key) + len(key)
+        operation = msg[begin + len(cls.ARROW):msg.find(cls.STOP, begin)]
+        return operation
 
-        operation = datagram.read('uint:2')
-        a = datagram.read('float:64')
-        b = datagram.read('float:64')
-        status = datagram.read('uint:2')
-        session_id = datagram.read('uint:16')
-        mode = datagram.read('uint:3')
-        result = datagram.read('float:64')
-        result_id = datagram.read('uint:32')
-        last = datagram.read("bool")
+    @classmethod
+    def from_msg(cls, msg: bytes):
+        msg_str = msg.decode('ascii')
+        print('parsing ' + msg_str)
+        operation = cls.__get_param(msg_str, cls.operation_key)
+        status = cls.__get_param(msg_str, cls.status_key)
+        session_id = int(cls.__get_param(msg_str, cls.id_key))
+        mode = cls.__get_param(msg_str, cls.mode_key)
+        a = int(cls.__get_param(msg_str, cls.a_key))
+        b = int(cls.__get_param(msg_str, cls.b_key))
+        result = int(cls.__get_param(msg_str, cls.result_key))
+        last = bool(cls.__get_param(msg_str, cls.last_key))
 
-        return cls(status, mode, session_id, operation, a, b, result, result_id, last)
+        return cls(status, session_id, mode, operation, a, b, result, last)
+
+    def to_msg(self) -> bytes:
+        msg = ''
+        msg += Datagram.operation_key + Datagram.ARROW + self.operation + '#'
+        msg += Datagram.status_key + Datagram.ARROW + self.status + '#'
+        msg += Datagram.id_key + Datagram.ARROW + str(self.session_id) + '#'
+        msg += Datagram.mode_key + Datagram.ARROW + self.mode + '#'
+        msg += Datagram.a_key + Datagram.ARROW + str(self.a) + '#'
+        msg += Datagram.b_key + Datagram.ARROW + str(self.b) + '#'
+        msg += Datagram.result_key + Datagram.ARROW + str(self.result) + '#'
+        msg += Datagram.last_key + Datagram.ARROW + str(self.last) + '#'
+
+        print('parsed: ' + msg)
+        return bytes(msg, 'ascii')
 
     def __str__(self) -> str:
-        return self.status_key + "->" + str(self.status) + " " + \
-            self.mode_key + "->" + str(self.mode) + " " + \
-            self.session_key + "->" + str(self.session_id) + " " + \
-            self.operation_key + "->" + str(self.operation) + " " + \
-            self.a_key + "->" + str(self.a) + " " + \
-            self.b_key + "->" + str(self.b) + " " + \
-            self.operation_key + "->" + str(self.result) + " " + \
-            self.result_key + "->" + str(self.result_id)
+        return self.status_key + Datagram.ARROW + str(self.status) + "\n" + \
+            self.mode_key + Datagram.ARROW + str(self.mode) + "\n" + \
+            self.id_key + Datagram.ARROW + str(self.session_id) + "\n" + \
+            self.operation_key + Datagram.ARROW + str(self.operation) + "\n" + \
+            self.a_key + Datagram.ARROW + str(self.a) + "\n" + \
+            self.b_key + Datagram.ARROW + str(self.b) + "\n" + \
+            self.result_key + Datagram.ARROW + str(self.result) + "\n" + \
+            self.last_key + self.ARROW + str(self.last) + "\n"
