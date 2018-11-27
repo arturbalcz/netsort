@@ -24,10 +24,10 @@ class Client:
         print('You can now use netsort')
         print(Operation.RAND_CMD + ' a b\t: get random value between a and b')
         print(Operation.MOD_CMD + ' a b\t\t: get the value of a mod b')
-        print(Operation.PYTH_CMD + ' a b\t: op3')
-        print(Operation.MEAN_CMD + ' a b\t: op4')
+        print(Operation.PYTH_CMD + ' a b\t: get the value of square root of a squared times b squared')
+        print(Operation.MEAN_CMD + ' a b\t: get the value of arithmetic mean of a and b')
         print(Mode.SORT_ASC_CMD + '\t\t: sort number series in ascending order')
-        print(Mode.SORT_DESC_CMD + ' id\t: sort number series in descending order')
+        print(Mode.SORT_DESC_CMD + ' \t\t: sort number series in descending order')
         print('exit\t\t: exit netsort')
 
         while self.connected:

@@ -120,7 +120,8 @@ class Server:
         return answer
 
     def __sort(self, dsc: bool, first: int, last: bool, address: tuple) -> Datagram:
-        utils.log('received call for ' + (Mode.SORT_DESC_CMD if dsc else Mode.SORT_ASC_CMD) + ' from session: ' + str(self.active_session_id))
+        utils.log('received call for ' + (Mode.SORT_DESC_CMD if dsc else Mode.SORT_ASC_CMD) + ' from session: ' +
+                  str(self.active_session_id))
         numbers = [first]
         last = last
         while not last:

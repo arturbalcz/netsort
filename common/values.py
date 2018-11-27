@@ -77,7 +77,7 @@ class Error:
     NOT_EXISTING_DATA = "4"
     INVALID_ARGUMENT = "5"
     MAX_VALUE_EXCEEDED = "6"
-    OPERATION_NOT_RECOGNIZED = "6"
+    OPERATION_NOT_RECOGNIZED = "7"
 
     @staticmethod
     def name_from_code(code: str) -> str:
