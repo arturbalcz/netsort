@@ -20,25 +20,25 @@ class Server:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     def __receive_datagram(self) -> (Datagram, tuple):
-        print('receiving data')
+        utils.log('receiving data')
         data, address = self.socket.recvfrom(1024)
-        print('received data from ' + str(address))
-        print('sending ack')
+        utils.log('received data from ' + str(address))
+        utils.log('sending ack')
         self.__send_datagram(Datagram(Status.OK, self.active_session_id, Mode.ACK), address)
         return Datagram.from_msg(data), address
 
     def __send_datagram(self, datagram: Datagram, address: tuple, ack: bool=False) -> bool:
-        print('sending data to ' + str(address))
+        utils.log('sending data to ' + str(address))
         self.socket.sendto(datagram.to_msg(), address)
         if ack:
-            print('waiting for ack')
+            utils.log('waiting for ack')
             raw_ack, address = self.socket.recvfrom(1024)
             datagram = Datagram.from_msg(raw_ack)
             if datagram.mode == Mode.ACK and datagram.status == Status.OK:
-                print('got ack')
+                utils.log('got ack')
                 return True
             else:
-                print('no ack')
+                utils.log('no ack')
                 return False
 
         return True
@@ -48,23 +48,23 @@ class Server:
         self.on = True
         while self.on:
             try:
-                print('waiting...')
+                utils.log('waiting...')
                 datagram, address = self.__receive_datagram()
+                answer: Datagram
                 try:
-                    answer: Datagram
                     if datagram.mode == Mode.CONNECT:
                         if self.active_session_id == 0 and datagram.session_id == 0:
-                            print('creating new session ' + str(self.next_id) + ' ' + str(address))
+                            utils.log('creating new session ' + str(self.next_id) + ' ' + str(address))
                             self.active_session_id = self.next_id
                             self.next_id += 1
                             answer = Datagram(Status.OK, self.active_session_id, Mode.CONNECT)
                         else:
-                            print('wrong new session request from ' + str(self.next_id) + ' ' + str(address))
+                            utils.log('wrong new session request from ' + str(self.next_id) + ' ' + str(address))
                             answer = Datagram(Status.REFUSED, 0, Mode.CONNECT)
 
                     elif datagram.session_id == self.active_session_id:
                         if datagram.mode == Mode.DISCONNECT:
-                            print('destroying session ' + str(self.next_id) + ' ' + str(address))
+                            utils.log('destroying session ' + str(self.next_id) + ' ' + str(address))
                             answer = Datagram(Status.OK, self.active_session_id, Mode.DISCONNECT)
                             self.active_session_id = 0
                             self.on = False
@@ -87,7 +87,7 @@ class Server:
             except (ConnectionAbortedError, ConnectionResetError):
                     utils.log('breaking listening for session: ' + str(self.active_session_id))
 
-        print('closing socket')
+        utils.log('closing socket')
         self.socket.close()
 
     def __operation(self, session_id: int, operation: str, num_a: int, num_b: int) -> Datagram:

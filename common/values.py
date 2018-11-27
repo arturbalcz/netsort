@@ -92,6 +92,8 @@ class Error:
             return 'INVALID_ARGUMENT'
         elif code == Error.MAX_VALUE_EXCEEDED:
             return 'MAX_VALUE_EXCEEDED'
+        elif code == Error.OPERATION_NOT_RECOGNIZED:
+            return 'OPERATION_NOT_RECOGNIZED'
         else:
             return 'unknown error'
 

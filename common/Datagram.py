@@ -1,3 +1,6 @@
+import time
+
+
 class Datagram:
 
     operation_key: str = 'o'
@@ -7,6 +10,7 @@ class Datagram:
     a_key: str = 'Na'
     b_key: str = 'Nb'
     result_key: str = 'r'
+    timestamp_key: str = 't'
     last_key: str = 'l'
 
     STOP = '#'
@@ -25,6 +29,7 @@ class Datagram:
         self.a = a
         self.b = b
         self.result = result
+        self.timestamp = int(time.time())
         self.last = last
 
     @classmethod
@@ -36,7 +41,7 @@ class Datagram:
     @classmethod
     def from_msg(cls, msg: bytes):
         msg_str = msg.decode('ascii')
-        print('parsing ' + msg_str)
+        print('from: ' + msg_str)
         operation = cls.__get_param(msg_str, cls.operation_key)
         status = cls.__get_param(msg_str, cls.status_key)
         session_id = int(cls.__get_param(msg_str, cls.id_key))
@@ -44,20 +49,24 @@ class Datagram:
         a = int(cls.__get_param(msg_str, cls.a_key))
         b = int(cls.__get_param(msg_str, cls.b_key))
         result = int(cls.__get_param(msg_str, cls.result_key))
+        timestamp = int(cls.__get_param(msg_str, cls.timestamp_key))
         last = bool(cls.__get_param(msg_str, cls.last_key))
 
-        return cls(status, session_id, mode, operation, a, b, result, last)
+        datagram = cls(status, session_id, mode, operation, a, b, result, last)
+        datagram.timestamp = timestamp
+        return datagram
 
     def to_msg(self) -> bytes:
         msg = ''
-        msg += Datagram.operation_key + Datagram.ARROW + self.operation + '#'
-        msg += Datagram.status_key + Datagram.ARROW + self.status + '#'
-        msg += Datagram.id_key + Datagram.ARROW + str(self.session_id) + '#'
-        msg += Datagram.mode_key + Datagram.ARROW + self.mode + '#'
-        msg += Datagram.a_key + Datagram.ARROW + str(self.a) + '#'
-        msg += Datagram.b_key + Datagram.ARROW + str(self.b) + '#'
-        msg += Datagram.result_key + Datagram.ARROW + str(self.result) + '#'
-        msg += Datagram.last_key + Datagram.ARROW + str(self.last) + '#'
+        msg += Datagram.operation_key + Datagram.ARROW + self.operation + self.STOP
+        msg += Datagram.status_key + Datagram.ARROW + self.status + self.STOP
+        msg += Datagram.id_key + Datagram.ARROW + str(self.session_id) + self.STOP
+        msg += Datagram.mode_key + Datagram.ARROW + self.mode + self.STOP
+        msg += Datagram.a_key + Datagram.ARROW + str(self.a) + self.STOP
+        msg += Datagram.b_key + Datagram.ARROW + str(self.b) + self.STOP
+        msg += Datagram.result_key + Datagram.ARROW + str(self.result) + self.STOP
+        msg += Datagram.timestamp_key + Datagram.ARROW + str(self.timestamp) + self.STOP
+        msg += Datagram.last_key + Datagram.ARROW + str(self.last) + self.STOP
 
         print('parsed: ' + msg)
         return bytes(msg, 'ascii')

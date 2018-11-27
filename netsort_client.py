@@ -1,6 +1,6 @@
 import sys
 import socket
-import time
+import datetime
 from common import utils
 from common.values import Status, Mode, Operation, LOCAL_HOST, PORT, MAX_DATAGRAM_SIZE, Error
 from common.Datagram import Datagram
@@ -71,27 +71,27 @@ class Client:
                     print('invalid command')
 
     def __send_ack(self):
-        print('sending ack')
+        utils.log('sending ack')
         self.socket.sendto(Datagram(Status.OK, self.session_id, Mode.ACK).to_msg(), (self.host, self.port))
 
     def __send_datagram(self, datagram: Datagram) -> List[Datagram]:
-        print('sending data')
+        utils.log('sending data')
         self.socket.sendto(datagram.to_msg(), (self.host, self.port))
 
-        print('waiting for ack...')
+        utils.log('waiting for ack...')
         ack, addr = self.socket.recvfrom(MAX_DATAGRAM_SIZE)
         if Datagram.from_msg(ack).mode == Mode.ACK:
-            print('got ack')
+            utils.log('got ack')
         else:
-            print('no ack')
+            utils.log('no ack')
             raise Exception('no ack')
 
-        print('getting response')
+        utils.log('getting response')
         answer = list()
         last = False
         while last is False:
             raw_data, address = self.socket.recvfrom(MAX_DATAGRAM_SIZE)
-            print('got datagram')
+            utils.log('got datagram')
             self.__send_ack()
             data = Datagram.from_msg(raw_data)
 
@@ -140,7 +140,10 @@ class Client:
         datagram = Datagram(Status.NEW, self.session_id, Mode.OPERATION, operation, a, b)
         answer = self.__send_datagram(datagram)[0]
         if answer.status == Status.OK:
-            print(str(answer.result))
+            print(
+                str(answer.result) +
+                '\t: ' + datetime.datetime.fromtimestamp(answer.timestamp).strftime('%H:%M:%S')
+            )
 
     def __sort_asc(self):
         print('n/a')
