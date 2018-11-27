@@ -17,11 +17,9 @@ class Mode:
     DISCONNECT = "1"
     OPERATION = "2"
     SORT_ASC = "3"
-    SORT_DESC = "3"
+    SORT_DESC = "4"
     ERROR = "5"
-
-    QUERY_BY_SESSION_ID_CMD = ''
-    QUERY_BY_RESULT_ID_CMD = 'result'
+    ACK = "6"
 
     @staticmethod
     def name_from_code(code: str) -> str:
@@ -32,18 +30,20 @@ class Mode:
         elif code == Mode.OPERATION:
             return 'OPERATION'
         elif code == Mode.SORT_ASC:
-            return ''
+            return 'SORT_ASC'
         elif code == Mode.SORT_DESC:
-            return 'QUERY_BY_RESULT_ID'
+            return 'SORT_DESC'
         elif code == Mode.ERROR:
             return 'ERROR'
+        elif code == Mode.ACK:
+            return 'ACK'
         else:
             return 'unknown method'
 
 
 class Operation:
     RAND = "a"
-    RAND_CMD = 'draw'
+    RAND_CMD = 'rand'
 
     MOD = 'A'
     MOD_CMD = 'mod'
