@@ -2,7 +2,7 @@
 LOCAL_HOST = '127.0.0.1'
 PORT = 1500
 
-MAX_DATAGRAM_SIZE = 1024
+MAX_DATAGRAM_SIZE = 2048
 
 
 class Status:
@@ -20,6 +20,9 @@ class Mode:
     SORT_DESC = "4"
     ERROR = "5"
     ACK = "6"
+
+    SORT_ASC_CMD = "asc"
+    SORT_DESC_CMD = "dsc"
 
     @staticmethod
     def name_from_code(code: str) -> str:

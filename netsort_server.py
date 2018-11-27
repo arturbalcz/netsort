@@ -70,10 +70,10 @@ class Server:
                             self.on = False
                         elif datagram.mode == Mode.OPERATION:
                             answer = self.__operation(datagram.session_id, datagram.operation, datagram.a, datagram.b)
-                        # elif datagram.mode == Mode.SORT_ASC:
-                        #     answer = self.__sort_asc(session_id)
-                        # elif datagram.mode == Mode.SORT_DESC:
-                        #     answer = self.__sort_desc(session_id)
+                        elif datagram.mode == Mode.SORT_ASC:
+                            answer = self.__sort(False, datagram.a, datagram.last, address)
+                        elif datagram.mode == Mode.SORT_DESC:
+                            answer = self.__sort(True, datagram.a, datagram.last, address)
                         else:
                             answer = self.__error(Error.UNAUTHORISED)
                     else:
@@ -119,11 +119,26 @@ class Server:
         answer = Datagram(Status.OK, session_id, Mode.OPERATION, operation, num_a, num_b, result)
         return answer
 
-    def __sort_asc(self, session_id: int):
-        return session_id
+    def __sort(self, dsc: bool, first: int, last: bool, address: tuple) -> Datagram:
+        utils.log('received call for ' + (Mode.SORT_DESC_CMD if dsc else Mode.SORT_ASC_CMD) + ' from session: ' + str(self.active_session_id))
+        numbers = [first]
+        last = last
+        while not last:
+            datagram, address = self.__receive_datagram()
+            numbers.append(datagram.a)
+            last = datagram.last
 
-    def __sort_desc(self, session_id: int):
-        return session_id
+        utils.log('got all, sorting...')
+        numbers.sort(reverse=dsc)
+
+        for i in range(0, len(numbers)-1):
+            utils.log('sending ' + str(numbers[i]))
+            self.__send_datagram(
+                Datagram(Status.OK, self.active_session_id, Mode.SORT_ASC, a=numbers[i], last=False), address, True
+            )
+
+        utils.log('sending last ' + str(numbers[len(numbers)-1]))
+        return Datagram(Status.OK, self.active_session_id, Mode.SORT_ASC, a=numbers[len(numbers)-1], last=True)
 
     @staticmethod
     def __error(code: str, mode: str = Mode.ERROR, session_id: int = 0, operation: str = '0') -> Datagram:

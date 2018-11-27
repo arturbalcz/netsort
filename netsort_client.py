@@ -24,10 +24,10 @@ class Client:
         print('You can now use netsort')
         print(Operation.RAND_CMD + ' a b\t: get random value between a and b')
         print(Operation.MOD_CMD + ' a b\t\t: get the value of a mod b')
-        print(Operation.PYTH_CMD + ' a b\t\t: op3')
-        print(Operation.MEAN_CMD + ' a b\t\t: op4')
-        print(Mode.SORT_ASC + '\t\t: sort number series in ascending order')
-        print(Mode.SORT_DESC + ' id\t: sort number series in descending order')
+        print(Operation.PYTH_CMD + ' a b\t: op3')
+        print(Operation.MEAN_CMD + ' a b\t: op4')
+        print(Mode.SORT_ASC_CMD + '\t\t: sort number series in ascending order')
+        print(Mode.SORT_DESC_CMD + ' id\t: sort number series in descending order')
         print('exit\t\t: exit netsort')
 
         while self.connected:
@@ -41,10 +41,10 @@ class Client:
             else:
                 command = command.split()
 
-                if command[0] == Mode.SORT_ASC:
-                    self.__sort_asc()
-                elif command[0] == Mode.SORT_DESC:
-                    self.__sort_desc()
+                if command[0] == Mode.SORT_ASC_CMD:
+                    self.__sort(False)
+                elif command[0] == Mode.SORT_DESC_CMD:
+                    self.__sort(True)
                 elif len(command) == 3 and (command[0] == Operation.RAND_CMD or command[0] == Operation.MOD_CMD or
                                             command[0] == Operation.PYTH_CMD or command[0] == Operation.MEAN_CMD):
                     try:
@@ -145,11 +145,42 @@ class Client:
                 '\t: ' + datetime.datetime.fromtimestamp(answer.timestamp).strftime('%H:%M:%S')
             )
 
-    def __sort_asc(self):
-        print('n/a')
+    def __sort(self, dsc: bool):
+        print('input numbers + #: ')
+        numbers = []
+        read = ''
+        while read != '#':
+            read = input()
+            if read != '#':
+                try:
+                    numbers.append(int(read))
+                except ValueError:
+                            print('invalid number ' + read)
 
-    def __sort_desc(self):
-        print('n/a')
+        mode = Mode.SORT_DESC if dsc else Mode.SORT_ASC
+
+        for i in range(0, len(numbers) - 1):
+            datagram = Datagram(Status.NEW, self.session_id, mode, a=numbers[i], last=False)
+            utils.log('sending ' + str(numbers[i]))
+            self.socket.sendto(datagram.to_msg(), (self.host, self.port))
+            utils.log('waiting for ack...')
+            ack, address = self.socket.recvfrom(MAX_DATAGRAM_SIZE)
+            if Datagram.from_msg(ack).mode == Mode.ACK:
+                utils.log('got ack')
+            else:
+                utils.log('no ack')
+                raise Exception('no ack')
+
+        utils.log('sending last ' + str(numbers[len(numbers) - 1]))
+        answer = self.__send_datagram(
+            Datagram(Status.NEW, self.session_id, mode, a=numbers[len(numbers) - 1], last=True)
+        )
+
+        sorted_numbers = []
+        for a in answer:
+            sorted_numbers.append(a.a)
+
+        print(sorted_numbers)
 
 
 def main():

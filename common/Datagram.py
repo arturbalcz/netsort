@@ -1,4 +1,5 @@
 import time
+import common.utils
 
 
 class Datagram:
@@ -41,7 +42,8 @@ class Datagram:
     @classmethod
     def from_msg(cls, msg: bytes):
         msg_str = msg.decode('ascii')
-        print('from: ' + msg_str)
+        common.utils.log('from: ' + msg_str)
+
         operation = cls.__get_param(msg_str, cls.operation_key)
         status = cls.__get_param(msg_str, cls.status_key)
         session_id = int(cls.__get_param(msg_str, cls.id_key))
@@ -50,7 +52,7 @@ class Datagram:
         b = int(cls.__get_param(msg_str, cls.b_key))
         result = int(cls.__get_param(msg_str, cls.result_key))
         timestamp = int(cls.__get_param(msg_str, cls.timestamp_key))
-        last = bool(cls.__get_param(msg_str, cls.last_key))
+        last = True if cls.__get_param(msg_str, cls.last_key) == '1' else False
 
         datagram = cls(status, session_id, mode, operation, a, b, result, last)
         datagram.timestamp = timestamp
@@ -66,9 +68,9 @@ class Datagram:
         msg += Datagram.b_key + Datagram.ARROW + str(self.b) + self.STOP
         msg += Datagram.result_key + Datagram.ARROW + str(self.result) + self.STOP
         msg += Datagram.timestamp_key + Datagram.ARROW + str(self.timestamp) + self.STOP
-        msg += Datagram.last_key + Datagram.ARROW + str(self.last) + self.STOP
+        msg += Datagram.last_key + Datagram.ARROW + ('1' if self.last else '0') + self.STOP
 
-        print('parsed: ' + msg)
+        common.utils.log('parsed: ' + msg)
         return bytes(msg, 'ascii')
 
     def __str__(self) -> str:
