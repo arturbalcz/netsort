@@ -44,14 +44,9 @@ class Client:
                 command = command.split()
 
                 if command[0] == Mode.SORT_ASC:
-                    self.__query_by_session_id()
+                    self.__sort_asc()
                 elif command[0] == Mode.SORT_DESC:
-                    try:
-                        result_id = int(command[1])
-                    except ValueError:
-                        print('invalid argument')
-                    else:
-                        self.__query_by_result_id(result_id)
+                    self.__sort_desc()
                 elif len(command) == 3 and (command[0] == Operation.RAND_CMD or command[0] == Operation.MOD_CMD or
                                             command[0] == Operation.OP_3_CMD or command[0] == Operation.OP_4_CMD):
                     try:
