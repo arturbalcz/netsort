@@ -21,7 +21,7 @@ class Server:
 
     def __receive_datagram(self) -> (Datagram, tuple):
         utils.log('receiving data')
-        data, address = self.socket.recvfrom(1024)
+        data, address = self.socket.recvfrom(MAX_DATAGRAM_SIZE)
         utils.log('received data from ' + str(address))
         utils.log('sending ack')
         self.__send_datagram(Datagram(Status.OK, self.active_session_id, Mode.ACK), address)
@@ -32,7 +32,7 @@ class Server:
         self.socket.sendto(datagram.to_msg(), address)
         if ack:
             utils.log('waiting for ack')
-            raw_ack, address = self.socket.recvfrom(1024)
+            raw_ack, address = self.socket.recvfrom(MAX_DATAGRAM_SIZE)
             datagram = Datagram.from_msg(raw_ack)
             if datagram.mode == Mode.ACK and datagram.status == Status.OK:
                 utils.log('got ack')

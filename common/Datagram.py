@@ -36,6 +36,9 @@ class Datagram:
     @classmethod
     def __get_param(cls, msg: str, key) -> str:
         begin = msg.find(key) + len(key)
+        if begin == -1:
+            return begin
+
         operation = msg[begin + len(cls.ARROW):msg.find(cls.STOP, begin)]
         return operation
 
