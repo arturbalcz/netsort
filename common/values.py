@@ -2,24 +2,24 @@
 LOCAL_HOST = '127.0.0.1'
 PORT = 1500
 
-MAX_DATAGRAM_SIZE = 2048
+MAX_DATAGRAM_SIZE = 4096
 
 
 class Status:
-    NEW = "0"
-    OK = "1"
-    REFUSED = "2"
-    ERROR = "3"
+    NEW = "new"
+    OK = "ok"
+    REFUSED = "refused"
+    ERROR = "error"
 
 
 class Mode:
-    CONNECT = "0"
-    DISCONNECT = "1"
-    OPERATION = "2"
-    SORT_ASC = "3"
-    SORT_DESC = "4"
-    ERROR = "5"
-    ACK = "6"
+    CONNECT = "connect"
+    DISCONNECT = "disconnect"
+    OPERATION = "operation"
+    SORT_ASC = "sortASC"
+    SORT_DESC = "sortDSC"
+    ERROR = "error"
+    ACK = "ACK"
 
     SORT_ASC_CMD = "asc"
     SORT_DESC_CMD = "dsc"
@@ -77,7 +77,7 @@ class Error:
     NOT_EXISTING_DATA = "4"
     INVALID_ARGUMENT = "5"
     MAX_VALUE_EXCEEDED = "6"
-    OPERATION_NOT_RECOGNIZED = "6"
+    OPERATION_NOT_RECOGNIZED = "7"
 
     @staticmethod
     def name_from_code(code: str) -> str:

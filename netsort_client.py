@@ -72,7 +72,7 @@ class Client:
 
     def __send_ack(self):
         utils.log('sending ack')
-        self.socket.sendto(Datagram(Status.OK, self.session_id, Mode.ACK).to_msg(), (self.host, self.port))
+        self.socket.sendto(Datagram(self.session_id, Mode.ACK, Status.OK).to_msg(), (self.host, self.port))
 
     def __send_datagram(self, datagram: Datagram) -> List[Datagram]:
         utils.log('sending data')
@@ -100,19 +100,19 @@ class Client:
 
             if data.status == Status.ERROR:
                 print(
-                    'error on server: ' + Mode.name_from_code(data.mode) + ' - ' + Error.name_from_code(str(data.a))
+                    'error on server: ' + Mode.name_from_code(data.mode) + ' - ' + str(data.error)
                 )
             elif data.status == Status.REFUSED:
                 print(
                     'server refused to ' + Mode.name_from_code(data.mode) +
-                    ' reason: ' + Error.name_from_code(data.a)
+                    ' reason: ' + str(data.error)
                 )
             answer.append(data)
 
         return answer
 
     def __connect(self) -> None:
-        datagram = Datagram(Status.NEW, 0, Mode.CONNECT)
+        datagram = Datagram(0, Mode.CONNECT, Status.NEW)
         answer = self.__send_datagram(datagram)[0]
         if answer.status == Status.OK:
             self.session_id = answer.session_id
@@ -124,7 +124,7 @@ class Client:
 
     def __disconnect(self) -> None:
         utils.log('disconnecting from : ' + self.host + ':' + str(self.port))
-        datagram = Datagram(Status.NEW, self.session_id, Mode.DISCONNECT)
+        datagram = Datagram(self.session_id, Mode.DISCONNECT, Status.NEW)
         answer = self.__send_datagram(datagram)[0]
         if answer.status == Status.OK:
             utils.log('disconnected from : ' + self.host + ':' + str(self.port))
@@ -132,12 +132,12 @@ class Client:
             self.connected = False
         else:
             utils.log(
-                'cannot disconnect from : ' + self.host + ':' + str(self.port) + ' error code: ' + str(answer.a),
+                'cannot disconnect from : ' + self.host + ':' + str(self.port) + ' error code: ' + str(answer.error),
                 True
             )
 
     def __operation(self, operation: str, a: int, b: int):
-        datagram = Datagram(Status.NEW, self.session_id, Mode.OPERATION, operation, a, b)
+        datagram = Datagram(self.session_id, Mode.OPERATION, Status.NEW, operation, a, b)
         answer = self.__send_datagram(datagram)[0]
         if answer.status == Status.OK:
             print(
@@ -160,7 +160,7 @@ class Client:
         mode = Mode.SORT_DESC if dsc else Mode.SORT_ASC
 
         for i in range(0, len(numbers) - 1):
-            datagram = Datagram(Status.NEW, self.session_id, mode, a=numbers[i], last=False)
+            datagram = Datagram(self.session_id, mode, Status.NEW, a=numbers[i], last=False)
             utils.log('sending ' + str(numbers[i]))
             self.socket.sendto(datagram.to_msg(), (self.host, self.port))
             utils.log('waiting for ack...')
@@ -173,7 +173,7 @@ class Client:
 
         utils.log('sending last ' + str(numbers[len(numbers) - 1]))
         answer = self.__send_datagram(
-            Datagram(Status.NEW, self.session_id, mode, a=numbers[len(numbers) - 1], last=True)
+            Datagram(self.session_id, mode, Status.NEW, a=numbers[len(numbers) - 1], last=True)
         )
 
         sorted_numbers = []

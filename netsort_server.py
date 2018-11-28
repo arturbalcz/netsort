@@ -24,7 +24,7 @@ class Server:
         data, address = self.socket.recvfrom(MAX_DATAGRAM_SIZE)
         utils.log('received data from ' + str(address))
         utils.log('sending ack')
-        self.__send_datagram(Datagram(Status.OK, self.active_session_id, Mode.ACK), address)
+        self.__send_datagram(Datagram(self.active_session_id, Mode.ACK, Status.OK), address)
         return Datagram.from_msg(data), address
 
     def __send_datagram(self, datagram: Datagram, address: tuple, ack: bool=False) -> bool:
@@ -57,15 +57,15 @@ class Server:
                             utils.log('creating new session ' + str(self.next_id) + ' ' + str(address))
                             self.active_session_id = self.next_id
                             self.next_id += 1
-                            answer = Datagram(Status.OK, self.active_session_id, Mode.CONNECT)
+                            answer = Datagram(self.active_session_id, Mode.CONNECT, Status.OK)
                         else:
                             utils.log('wrong new session request from ' + str(self.next_id) + ' ' + str(address))
-                            answer = Datagram(Status.REFUSED, 0, Mode.CONNECT)
+                            answer = Datagram(0, Mode.CONNECT, Status.REFUSED)
 
                     elif datagram.session_id == self.active_session_id:
                         if datagram.mode == Mode.DISCONNECT:
                             utils.log('destroying session ' + str(self.next_id) + ' ' + str(address))
-                            answer = Datagram(Status.OK, self.active_session_id, Mode.DISCONNECT)
+                            answer = Datagram(self.active_session_id, Mode.DISCONNECT, Status.OK)
                             self.active_session_id = 0
                             self.on = False
                         elif datagram.mode == Mode.OPERATION:
@@ -116,7 +116,7 @@ class Server:
         else:
             return self.__error(Error.OPERATION_NOT_RECOGNIZED, Mode.OPERATION, self.active_session_id, operation)
 
-        answer = Datagram(Status.OK, session_id, Mode.OPERATION, operation, num_a, num_b, result)
+        answer = Datagram(session_id, Mode.OPERATION, Status.OK, operation, num_a, num_b, result)
         return answer
 
     def __sort(self, dsc: bool, first: int, last: bool, address: tuple) -> Datagram:
@@ -134,11 +134,11 @@ class Server:
         for i in range(0, len(numbers)-1):
             utils.log('sending ' + str(numbers[i]))
             self.__send_datagram(
-                Datagram(Status.OK, self.active_session_id, Mode.SORT_ASC, a=numbers[i], last=False), address, True
+                Datagram(self.active_session_id, Mode.SORT_ASC, Status.OK, a=numbers[i], last=False), address, True
             )
 
         utils.log('sending last ' + str(numbers[len(numbers)-1]))
-        return Datagram(Status.OK, self.active_session_id, Mode.SORT_ASC, a=numbers[len(numbers)-1], last=True)
+        return Datagram(self.active_session_id, Mode.SORT_ASC, Status.OK, a=numbers[len(numbers) - 1], last=True)
 
     @staticmethod
     def __error(code: str, mode: str = Mode.ERROR, session_id: int = 0, operation: str = '0') -> Datagram:
@@ -146,7 +146,7 @@ class Server:
             Error.name_from_code(code) + ' on session: ' + str(session_id) + ' mode: ' + Mode.name_from_code(mode),
             True
         )
-        error = Datagram(Status.ERROR, session_id, mode, operation, a=int(code))
+        error = Datagram(session_id, mode, Status.ERROR, operation, error=Error.name_from_code(code))
         return error
 
 
