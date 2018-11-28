@@ -76,9 +76,11 @@ class Client:
 
     def __send_datagram(self, datagram: Datagram) -> List[Datagram]:
         utils.log('sending data')
+        # send data
         self.socket.sendto(datagram.to_msg(), (self.host, self.port))
 
         utils.log('waiting for ack...')
+        # wait for ack
         ack, addr = self.socket.recvfrom(MAX_DATAGRAM_SIZE)
         if Datagram.from_msg(ack).mode == Mode.ACK:
             utils.log('got ack')
@@ -86,15 +88,18 @@ class Client:
             utils.log('no ack')
             raise Exception('no ack')
 
+        # listen for response
         utils.log('getting response')
         answer = list()
         last = False
         while last is False:
+            # get response chunk
             raw_data, address = self.socket.recvfrom(MAX_DATAGRAM_SIZE)
             utils.log('got datagram')
             self.__send_ack()
             data = Datagram.from_msg(raw_data)
 
+            # check is next chunk is comming
             if data.last:
                     last = True
 
@@ -112,6 +117,7 @@ class Client:
         return answer
 
     def __connect(self) -> None:
+        # send datagram with connection request
         datagram = Datagram(0, Mode.CONNECT, Status.NEW)
         answer = self.__send_datagram(datagram)[0]
         if answer.status == Status.OK:
@@ -123,6 +129,7 @@ class Client:
             self.connected = False
 
     def __disconnect(self) -> None:
+        # send datagram with disconnection request
         utils.log('disconnecting from : ' + self.host + ':' + str(self.port))
         datagram = Datagram(self.session_id, Mode.DISCONNECT, Status.NEW)
         answer = self.__send_datagram(datagram)[0]
@@ -146,6 +153,7 @@ class Client:
             )
 
     def __sort(self, dsc: bool):
+        # read numbers
         print('input numbers + #: ')
         numbers = []
         read = ''
@@ -159,6 +167,7 @@ class Client:
 
         mode = Mode.SORT_DESC if dsc else Mode.SORT_ASC
 
+        # send all numbers
         for i in range(0, len(numbers) - 1):
             datagram = Datagram(self.session_id, mode, Status.NEW, a=numbers[i], last=False)
             utils.log('sending ' + str(numbers[i]))
@@ -176,6 +185,7 @@ class Client:
             Datagram(self.session_id, mode, Status.NEW, a=numbers[len(numbers) - 1], last=True)
         )
 
+        # wait for answer
         sorted_numbers = []
         for a in answer:
             sorted_numbers.append(a.a)

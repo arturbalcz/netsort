@@ -21,17 +21,22 @@ class Server:
 
     def __receive_datagram(self) -> (Datagram, tuple):
         utils.log('receiving data')
+        # wait for data
         data, address = self.socket.recvfrom(MAX_DATAGRAM_SIZE)
         utils.log('received data from ' + str(address))
         utils.log('sending ack')
+        # send ack
         self.__send_datagram(Datagram(self.active_session_id, Mode.ACK, Status.OK), address)
         return Datagram.from_msg(data), address
 
     def __send_datagram(self, datagram: Datagram, address: tuple, ack: bool=False) -> bool:
         utils.log('sending data to ' + str(address))
+        # send data
         self.socket.sendto(datagram.to_msg(), address)
+        # if ack needed wait for it [ack is not needed when sent message is ack]
         if ack:
             utils.log('waiting for ack')
+            # send ack
             raw_ack, address = self.socket.recvfrom(MAX_DATAGRAM_SIZE)
             datagram = Datagram.from_msg(raw_ack)
             if datagram.mode == Mode.ACK and datagram.status == Status.OK:
@@ -44,11 +49,14 @@ class Server:
         return True
 
     def listen(self) -> None:
+        # start listening on given port
         self.socket.bind((self.host, self.port))
         self.on = True
+        # listen until server is on
         while self.on:
             try:
                 utils.log('waiting...')
+                # wait for data
                 datagram, address = self.__receive_datagram()
                 answer: Datagram
                 try:
@@ -87,6 +95,7 @@ class Server:
             except (ConnectionAbortedError, ConnectionResetError):
                     utils.log('breaking listening for session: ' + str(self.active_session_id))
 
+        # after closing session, close socket
         utils.log('closing socket')
         self.socket.close()
 
@@ -123,6 +132,7 @@ class Server:
         utils.log('received call for ' + (Mode.SORT_DESC_CMD if dsc else Mode.SORT_ASC_CMD) + ' from session: ' +
                   str(self.active_session_id))
         numbers = [first]
+        # listen for all numbers
         last = last
         while not last:
             datagram, address = self.__receive_datagram()
@@ -132,12 +142,14 @@ class Server:
         utils.log('got all, sorting...')
         numbers.sort(reverse=dsc)
 
+        # send all but last number
         for i in range(0, len(numbers)-1):
             utils.log('sending ' + str(numbers[i]))
             self.__send_datagram(
                 Datagram(self.active_session_id, Mode.SORT_ASC, Status.OK, a=numbers[i], last=False), address, True
             )
 
+        # return last number
         utils.log('sending last ' + str(numbers[len(numbers)-1]))
         return Datagram(self.active_session_id, Mode.SORT_ASC, Status.OK, a=numbers[len(numbers) - 1], last=True)
 
